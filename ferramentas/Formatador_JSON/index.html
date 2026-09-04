@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Formatador de JSON</title>
+<style>
+*{box-sizing:border-box}
+:root{--bg:#f5f7fb;--surface:#fff;--border:#e5e7eb;--text:#111827;--muted:#6b7280;--button:#374151;--button-hover:#1f2937}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+header{background:#111827;color:#fff;padding:28px 20px 76px}
+.header-content{max-width:1100px;margin:auto}
+.back-link{display:inline-block;color:#d1d5db;text-decoration:none;font-size:14px;margin-bottom:28px}
+.back-link:hover{color:#fff}
+.badge{display:inline-block;padding:6px 10px;border:1px solid #374151;border-radius:999px;color:#d1d5db;font-size:12px;margin-bottom:14px}
+h1{margin:0;font-size:34px;line-height:1.2}
+.subtitle{max-width:780px;margin:12px 0 0;color:#9ca3af;line-height:1.6;font-size:15px}
+main{max-width:1100px;margin:-44px auto 40px;padding:0 20px}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:20px;box-shadow:0 8px 24px rgba(17,24,39,.06)}
+.panel-title{font-size:18px;font-weight:bold;margin-bottom:18px}
+.input-header{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:8px}
+.input-header label{margin:0}
+.info-group{display:flex;gap:16px;flex-wrap:wrap;justify-content:flex-end}
+.info{color:var(--muted);font-size:12px;white-space:nowrap}
+label{display:block;color:var(--muted);font-size:12px;font-weight:bold;text-transform:uppercase;letter-spacing:.04em}
+textarea{width:100%;border:1px solid var(--border);border-radius:10px;background:#fff;color:var(--text);padding:12px 14px;font-family:Consolas,"Courier New",monospace;font-size:14px;line-height:1.5;outline:none;resize:vertical}
+textarea:focus{border-color:#9ca3af;box-shadow:0 0 0 3px rgba(156,163,175,.18)}
+#input{min-height:260px}
+#output{min-height:260px;background:#f9fafb;white-space:pre-wrap;overflow:auto}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+button{border:0;border-radius:10px;background:var(--button);color:#fff;padding:11px 16px;font-size:14px;font-weight:bold;cursor:pointer}
+button:hover{background:var(--button-hover)}
+#status{margin-top:14px;font-size:14px;font-weight:bold}
+.error{color:#dc2626}.success{color:#16a34a}
+footer{text-align:center;color:var(--muted);font-size:13px;padding:10px 20px 30px}
+@media(max-width:700px){header{padding:22px 16px 68px}h1{font-size:28px}main{padding:0 16px}.panel{padding:18px}.input-header{flex-direction:column;gap:8px}.info-group{justify-content:flex-start}.actions{flex-direction:column}button{width:100%}#input,#output{min-height:220px}}
+</style>
+</head>
+<body>
+<header><div class="header-content">
+<a class="back-link" href="../../">← Voltar para ferramentas</a>
+<div class="badge">Manipulação de dados</div>
+<h1>Formatador de JSON</h1>
+<p class="subtitle">Formate, valide, compacte e copie JSON de forma rápida, com indicação da posição do cursor e quantidade de caracteres.</p>
+</div></header>
+<main>
+<section class="panel">
+<div class="panel-title">JSON de entrada</div>
+<div class="input-header">
+<label for="input">Conteúdo</label>
+<div class="info-group">
+<div class="info" id="cursorPos">Linha: 1, Coluna: 1</div>
+<div class="info" id="charCount">Caracteres: 0</div>
+</div>
+</div>
+<textarea id="input" placeholder="Cole seu JSON aqui..." oninput="atualizarInfos()" onkeyup="atualizarInfos()" onclick="atualizarInfos()" onscroll="atualizarInfos()" onselect="atualizarInfos()"></textarea>
+<div class="actions">
+<button onclick="formatarJSON()">Formatar</button>
+<button onclick="copiarJSON()">Copiar JSON formatado</button>
+<button onclick="copiarEntrada()">Copiar Entrada</button>
+<button onclick="copiarSemEspacos()">Copiar sem espaços</button>
+<button onclick="removerEspacos()">Remover espaços/quebras</button>
+<button onclick="limparCampos()">Limpar</button>
+</div>
+</section>
+<section class="panel">
+<div class="panel-title">Resultado</div>
+<pre id="output"></pre>
+<div id="status"></div>
+</section>
+</main>
+<footer>Ferramentas pessoais · GitHub Pages</footer>
+<script>
+function atualizarInfos() {
+      const textarea = document.getElementById('input');
+      const pos = textarea.selectionStart;
+      const text = textarea.value;
+
+      const ateCursor = text.slice(0, pos);
+      const linhas = ateCursor.split('\n');
+      const linha = linhas.length;
+      const coluna = linhas[linhas.length - 1].length + 1;
+      const caracteres = text.length;
+
+      document.getElementById('cursorPos').textContent = `Linha: ${linha}, Coluna: ${coluna}`;
+      document.getElementById('charCount').textContent = `Caracteres: ${caracteres}`;
+    }
+
+    function localizarErro(msg) {
+      const regex = /at position (\d+)/;
+      const match = msg.match(regex);
+      if (match && match[1]) {
+        const pos = parseInt(match[1]);
+        const input = document.getElementById('input').value;
+        const ateAqui = input.slice(0, pos);
+        const linha = ateAqui.split('\n').length;
+        const coluna = ateAqui.length - ateAqui.lastIndexOf('\n');
+        return `Erro na linha ${linha}, coluna ${coluna}`;
+      }
+      return '';
+    }
+
+    function validarJSON(jsonString) {
+      try {
+        const obj = JSON.parse(jsonString);
+        if (typeof obj !== 'object' || obj === null) {
+          return { erro: true, mensagem: 'JSON deve ser um objeto ou array válido.' };
+        }
+        return { erro: false, objeto: obj };
+      } catch (e) {
+        return {
+          erro: true,
+          mensagem: `Erro de sintaxe: ${e.message}. ${localizarErro(e.message)}`
+        };
+      }
+    }
+
+    function formatarJSON() {
+      const input = document.getElementById('input').value;
+      const output = document.getElementById('output');
+      const status = document.getElementById('status');
+
+      const resultado = validarJSON(input);
+
+      if (resultado.erro) {
+        output.textContent = resultado.mensagem;
+        output.className = 'error';
+        status.textContent = '';
+      } else {
+        const formatado = JSON.stringify(resultado.objeto, null, 2);
+        output.textContent = formatado;
+        output.className = '';
+        status.textContent = 'JSON formatado com sucesso.';
+        status.className = 'success';
+      }
+    }
+
+    function copiarJSON() {
+      const output = document.getElementById('output').textContent;
+      const status = document.getElementById('status');
+
+      if (output.trim() === '') {
+        status.textContent = 'Nada para copiar.';
+        status.className = 'error';
+        return;
+      }
+
+      navigator.clipboard.writeText(output)
+        .then(() => {
+          status.textContent = 'JSON copiado para a área de transferência!';
+          status.className = 'success';
+        })
+        .catch(err => {
+          status.textContent = 'Erro ao copiar: ' + err;
+          status.className = 'error';
+        });
+    }
+
+    function removerEspacos() {
+      const input = document.getElementById('input');
+      const original = input.value;
+      const compactado = original.replace(/\s+/g, '');
+      input.value = compactado;
+      atualizarInfos();
+    }
+
+    function limparCampos() {
+      document.getElementById('input').value = '';
+      document.getElementById('output').textContent = '';
+      document.getElementById('status').textContent = '';
+      atualizarInfos();
+    }
+
+    function copiarEntrada() {
+  const input = document.getElementById('input').value;
+  const status = document.getElementById('status');
+
+  if (input.trim() === '') {
+    status.textContent = 'Nada para copiar da entrada.';
+    status.className = 'error';
+    return;
+  }
+
+  navigator.clipboard.writeText(input)
+    .then(() => {
+      status.textContent = 'Entrada copiada para a área de transferência!';
+      status.className = 'success';
+    })
+    .catch(err => {
+      status.textContent = 'Erro ao copiar: ' + err;
+      status.className = 'error';
+    });
+}
+
+function copiarSemEspacos() {
+  const input = document.getElementById('input').value;
+  const compactado = input.replace(/\s+/g, '');
+  const status = document.getElementById('status');
+
+  if (compactado.trim() === '') {
+    status.textContent = 'Nada para copiar sem espaços.';
+    status.className = 'error';
+    return;
+  }
+
+  navigator.clipboard.writeText(compactado)
+    .then(() => {
+      status.textContent = 'Conteudo sem espaços copiado!';
+      status.className = 'success';
+    })
+    .catch(err => {
+      status.textContent = 'Erro ao copiar: ' + err;
+      status.className = 'error';
+    });
+}
+
+    // Atualiza ao carregar a página
+    atualizarInfos();
+</script>
+</body>
+</html>

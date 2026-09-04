@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ferramenta Hex / Bytes</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #f5f7fb;
+      --surface: #ffffff;
+      --border: #e5e7eb;
+      --border-hover: #d1d5db;
+      --text: #111827;
+      --muted: #6b7280;
+      --muted-light: #9ca3af;
+      --button: #374151;
+      --button-hover: #1f2937;
+      --input-bg: #ffffff;
+      --output-bg: #f8fafc;
+      --success: #15803d;
+      --error: #dc2626;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                   Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ==============================
+       HEADER
+    ============================== */
+
+    header {
+      background: #111827;
+      color: white;
+      padding: 28px 20px 42px;
+    }
+
+    .header-content {
+      max-width: 1100px;
+      margin: auto;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: #d1d5db;
+      text-decoration: none;
+      font-size: 14px;
+      margin-bottom: 25px;
+      transition: color .2s;
+    }
+
+    .back-link:hover {
+      color: white;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 20px;
+      background: rgba(255,255,255,.10);
+      color: #d1d5db;
+      font-size: 13px;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      font-size: 34px;
+      font-weight: 700;
+      letter-spacing: -0.7px;
+      margin-bottom: 9px;
+    }
+
+    .subtitle {
+      color: #9ca3af;
+      font-size: 15px;
+      line-height: 1.6;
+      max-width: 700px;
+    }
+
+    /* ==============================
+       MAIN
+    ============================== */
+
+    main {
+      max-width: 1100px;
+      margin: -24px auto 50px;
+      padding: 0 20px;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px;
+      margin-bottom: 18px;
+      box-shadow: 0 8px 25px rgba(0,0,0,.055);
+    }
+
+    .panel-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 14px;
+    }
+
+    .textarea-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 150px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    textarea {
+      width: 100%;
+      height: 230px;
+      font-family: "Cascadia Code", "Consolas", "Courier New", monospace;
+      font-size: 14px;
+      line-height: 1.55;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--input-bg);
+      color: var(--text);
+      resize: vertical;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    textarea:focus {
+      border-color: #9ca3af;
+      box-shadow: 0 0 0 3px rgba(107,114,128,.10);
+    }
+
+    .info-box {
+      background: #f9fafb;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 13px;
+    }
+
+    .info {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.8;
+      white-space: nowrap;
+    }
+
+    /* ==============================
+       TOOLBAR
+    ============================== */
+
+    .tool-group {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #f0f1f3;
+    }
+
+    .tool-group:first-child {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: 0;
+    }
+
+    .group-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 9px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    button {
+      padding: 9px 13px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      background: var(--button);
+      color: #fff;
+      border: 0;
+      border-radius: 8px;
+      transition: background .2s, transform .1s;
+    }
+
+    button:hover {
+      background: var(--button-hover);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: white;
+      color: var(--text);
+      font-size: 13px;
+      outline: none;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    select:focus {
+      border-color: #9ca3af;
+      box-shadow: 0 0 0 3px rgba(107,114,128,.08);
+    }
+
+    .inline-label {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* ==============================
+       OUTPUT
+    ============================== */
+
+    .output-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .output-title h2 {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    #output {
+      background: var(--output-bg);
+      white-space: pre-wrap;
+      padding: 15px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      min-height: 220px;
+      font-family: "Cascadia Code", "Consolas", "Courier New", monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      overflow: auto;
+      color: #1f2937;
+    }
+
+    #status {
+      margin-top: 10px;
+      min-height: 20px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .error {
+      color: var(--error);
+    }
+
+    .success {
+      color: var(--success);
+    }
+
+    /* ==============================
+       FOOTER
+    ============================== */
+
+    footer {
+      text-align: center;
+      color: var(--muted-light);
+      font-size: 12px;
+      padding: 10px 20px 25px;
+    }
+
+    @media (max-width: 700px) {
+      header {
+        padding: 24px 20px 38px;
+      }
+
+      h1 {
+        font-size: 29px;
+      }
+
+      .textarea-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .info-box {
+        display: flex;
+        gap: 18px;
+        flex-wrap: wrap;
+      }
+
+      .panel {
+        padding: 16px;
+      }
+
+      main {
+        padding: 0 12px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="header-content">
+      <a class="back-link" href="../../">
+        ← Voltar para ferramentas
+      </a>
+
+      <div class="badge">Ferramenta de comunicação</div>
+
+      <h1>Hex / Bytes</h1>
+
+      <p class="subtitle">
+        Conversão, formatação e interpretação de bytes hexadecimais,
+        incluindo funções auxiliares para análise de tramas Modbus RTU.
+      </p>
+    </div>
+  </header>
+
+  <main>
+
+    <section class="panel">
+      <div class="panel-title">Entrada</div>
+
+      <div class="textarea-layout">
+        <textarea id="input"
+          placeholder="Cole bytes hex (ex: 01 03 00 00 00 0A) ou texto aqui..."
+          oninput="atualizarInfos()"
+          onkeyup="atualizarInfos()"
+          onclick="atualizarInfos()"
+          onscroll="atualizarInfos()"
+          onselect="atualizarInfos()"></textarea>
+
+        <div class="info-box">
+          <div class="info" id="cursorPos">Linha: 1, Coluna: 1</div>
+          <div class="info" id="charCount">Caracteres: 0</div>
+          <div class="info" id="byteCount">Bytes: 0</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+
+      <div class="tool-group">
+        <span class="group-label">Formatação</span>
+        <div class="controls">
+          <button onclick="formatarHex()">Formatar Hex</button>
+          <button onclick="limparCampos()">Limpar</button>
+          <button onclick="minificar()">Remover espaços/quebras</button>
+          <button onclick="copiarEntrada()">Copiar Entrada</button>
+          <button onclick="copiarOutput()">Copiar Saida</button>
+        </div>
+      </div>
+
+      <div class="tool-group">
+        <span class="group-label">Prefixos e agrupamento</span>
+        <div class="controls">
+          <span class="inline-label">Prefixo:</span>
+          <input id="prefixInput" type="text" placeholder="$ ou 0x" style="width:70px" value="$">
+          <button onclick="adicionarPrefixo()">Adicionar prefixo</button>
+          <button onclick="removerPrefixo()">Remover prefixos</button>
+
+          <span class="inline-label">Agrupar por:</span>
+          <input id="groupSize" type="number" min="1" value="1" style="width:70px">
+          <select id="groupSep">
+            <option value=" ">Espaço</option>
+            <option value=",">Vírgula</option>
+            <option value="|">Barra</option>
+            <option value="">Sem separador</option>
+          </select>
+          <button onclick="agruparBytes()">Agrupar</button>
+
+          <span class="inline-label">Case:</span>
+          <select id="caseOpt">
+            <option value="upper">MAIÚSCULAS</option>
+            <option value="lower">minúsculas</option>
+          </select>
+          <button onclick="aplicarCase()">Aplicar case</button>
+        </div>
+      </div>
+
+      <div class="tool-group">
+        <span class="group-label">Conversão</span>
+        <div class="controls">
+          <button onclick="hexParaTexto()">Hex → Texto (ASCII)</button>
+          <button onclick="textoParaHex()">Texto → Hex</button>
+
+          <span class="inline-label">Adicionar no fim:</span>
+          <select id="appendEnd">
+            <option value="none">Nenhum</option>
+            <option value="CR">CR (0D)</option>
+            <option value="LF">LF (0A)</option>
+            <option value="CRLF">CR+LF (0D 0A)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="tool-group">
+        <span class="group-label">CRC e bytes finais</span>
+        <div class="controls">
+          <button onclick="appendCRC()">Adicionar CRC16 (Modbus)</button>
+          <button onclick="verificarCRC()">Verificar CRC16</button>
+          <button onclick="mostrarArrayBytes()">Mostrar array de bytes</button>
+          <button onclick="appendCR_Hex()">Adicionar CR (0D)</button>
+          <button onclick="appendLF_Hex()">Adicionar LF (0A)</button>
+          <button onclick="appendCRLF_Hex()">Adicionar CR+LF (0D 0A)</button>
+        </div>
+      </div>
+
+      <div class="tool-group">
+        <span class="group-label">Modbus</span>
+        <div class="controls">
+          <button onclick="interpretarModbus()">Interpretar Modbus</button>
+        </div>
+      </div>
+
+    </section>
+
+    <section class="panel">
+      <div class="output-title">
+        <h2>Saída</h2>
+      </div>
+
+      <pre id="output"></pre>
+      <div id="status"></div>
+    </section>
+
+  </main>
+
+  <footer>
+    Ferramentas pessoais · GitHub Pages
+  </footer>
+
+  <script>
+    // ---------- UTILITÁRIOS ----------
+    function atualizarInfos() {
+      const ta = document.getElementById('input');
+      const pos = ta.selectionStart;
+      const text = ta.value;
+      const ateCursor = text.slice(0, pos);
+      const linhas = ateCursor.split('\n');
+      const linha = linhas.length;
+      const coluna = linhas[linhas.length - 1].length + 1;
+      document.getElementById('cursorPos').textContent = `Linha: ${linha}, Coluna: ${coluna}`;
+      document.getElementById('charCount').textContent = `Caracteres: ${text.length}`;
+      document.getElementById('byteCount').textContent = `Bytes: ${contarBytesHex(text)}`;
+    }
+
+    function setStatus(msg, cls) {
+      const s = document.getElementById('status');
+      s.textContent = msg;
+      s.className = cls || '';
+    }
+
+    function copiarTexto(text) { return navigator.clipboard.writeText(text); }
+
+    // Normaliza input (aceita 0x, $, vírgulas, quebras)
+    function normalizarHexInput(str) {
+      if (!str) return '';
+      let s = str.replace(/0x/ig, ' ');
+      s = s.replace(/\$/g, ' ');
+      s = s.replace(/[,|\-]/g, ' ');
+      s = s.replace(/[\r\n]+/g, ' ');
+      s = s.replace(/[^0-9A-Fa-f ]+/g, '');
+      s = s.trim().replace(/\s+/g, ' ');
+      return s;
+    }
+
+    function splitHexTokens(str) {
+      const s = normalizarHexInput(str);
+      if (s === '') return [];
+      let parts = s.split(' ').filter(p => p.length > 0);
+      if (parts.length === 1 && parts[0].length > 2) {
+        const matched = parts[0].match(/.{1,2}/g);
+        if (matched) parts = matched;
+      }
+      return parts.map(tok => tok.length % 2 === 1 ? '0' + tok : tok);
+    }
+
+    function validarHexToken(tok) { return /^[0-9A-Fa-f]{2}$/.test(tok); }
+    function contarBytesHex(str) { return splitHexTokens(str).length; }
+
+    function bytesFromHexString(str) {
+      const toks = splitHexTokens(str);
+      const bytes = [];
+      for (const t of toks) {
+        if (!validarHexToken(t)) throw new Error('Token hex inválido: ' + t);
+        bytes.push(parseInt(t, 16));
+      }
+      return bytes;
+    }
+
+    function hexFromBytes(bytes, sep = ' ', uppercase = true) {
+      const arr = bytes.map(b => {
+        const h = (b & 0xFF).toString(16).padStart(2, '0');
+        return uppercase ? h.toUpperCase() : h.toLowerCase();
+      });
+      return arr.join(sep);
+    }
+
+    // CRC16 Modbus
+    function crc16Modbus(bytes) {
+      let crc = 0xFFFF;
+      for (let pos = 0; pos < bytes.length; pos++) {
+        crc ^= bytes[pos];
+        for (let i = 0; i < 8; i++) {
+          if ((crc & 0x0001) !== 0) {
+            crc >>= 1;
+            crc ^= 0xA001;
+          } else {
+            crc >>= 1;
+          }
+        }
+      }
+      return { crc16: crc & 0xFFFF, low: crc & 0xFF, high: (crc >> 8) & 0xFF };
+    }
+
+    // Reusar: tenta usar output; se vazio usa input; interpreta hex ou texto
+    function _getBytesFromOutputOrInput() {
+      const out = document.getElementById('output').textContent.trim();
+      if (out) {
+        try { return bytesFromHexString(out); }
+        catch (_) {
+          const arr = []; for (let i = 0; i < out.length; i++) arr.push(out.charCodeAt(i));
+          return arr;
+        }
+      } else {
+        const inp = document.getElementById('input').value.trim();
+        try { return bytesFromHexString(inp); }
+        catch (_) {
+          const arr = []; for (let i = 0; i < inp.length; i++) arr.push(inp.charCodeAt(i));
+          return arr;
+        }
+      }
+    }
+
+    // ---------- AÇÕES EXISTENTES (mantidas) ----------
+    function formatarHex() {
+      try {
+        const input = document.getElementById('input').value;
+        const toks = splitHexTokens(input);
+        if (toks.length === 0) { setStatus('Nada a formatar.', 'error'); document.getElementById('output').textContent = ''; return; }
+        const sep = document.getElementById('groupSep').value || ' ';
+        const groupSize = Number(document.getElementById('groupSize').value) || 1;
+        const caseOpt = document.getElementById('caseOpt').value;
+        const bytes = toks.map(t => parseInt(t, 16));
+        if (groupSize === 1) {
+          const out = hexFromBytes(bytes, sep === '' ? ' ' : sep, caseOpt === 'upper');
+          document.getElementById('output').textContent = (caseOpt === 'lower') ? out.toLowerCase() : out.toUpperCase();
+        } else {
+          const groups = [];
+          for (let i = 0; i < bytes.length; i += groupSize) {
+            const slice = bytes.slice(i, i + groupSize);
+            groups.push(hexFromBytes(slice, '', caseOpt === 'upper'));
+          }
+          let out;
+          if (sep === ' ') {
+            const bytesHex = bytes.map(b => b.toString(16).padStart(2, '0'));
+            out = bytesHex.join(' ');
+            out = (caseOpt === 'lower') ? out.toLowerCase() : out.toUpperCase();
+          } else {
+            const joined = groups.map(g => g.match(/.{1,2}/g).join(sep)).join(' ');
+            out = (caseOpt==='lower') ? joined.toLowerCase() : joined.toUpperCase();
+          }
+          document.getElementById('output').textContent = out;
+        }
+        setStatus('Hex formatado.', 'success');
+      } catch (e) { setStatus('Erro: ' + e.message, 'error'); }
+    }
+
+    function minificar() {
+      try {
+        const s = document.getElementById('input').value;
+        const toks = splitHexTokens(s);
+        const out = toks.join('');
+        document.getElementById('output').textContent = out;
+        setStatus('Minificado (sem espaços).', 'success');
+      } catch (e) { setStatus('Erro: ' + e.message, 'error'); }
+    }
+
+    function adicionarPrefixo() {
+      try {
+        const prefix = document.getElementById('prefixInput').value || '';
+        const s = document.getElementById('input').value;
+        const toks = splitHexTokens(s);
+        if (toks.length === 0) { setStatus('Nada para prefixar.', 'error'); return; }
+        const caseOpt = document.getElementById('caseOpt').value;
+        const arr = toks.map(t => (caseOpt === 'lower' ? t.toLowerCase() : t.toUpperCase()));
+        const out = arr.map(b => prefix + b).join(' ');
+        document.getElementById('output').textContent = out;
+        setStatus('Prefixo adicionado.', 'success');
+      } catch (e) { setStatus('Erro: ' + e.message, 'error'); }
+    }
+
+    function removerPrefixo() {
+      try {
+        const s = document.getElementById('input').value;
+        const toks = splitHexTokens(s);
+        if (toks.length === 0) { setStatus('Nada para processar.', 'error'); return; }
+        document.getElementById('output').textContent = toks.join(' ').toUpperCase();
+        setStatus('Prefixos removidos e normalizado.', 'success');
+      } catch (e) { setStatus('Erro: ' + e.message, 'error'); }
+    }
+
+    function agruparBytes() {
+      try {
+        const bytes = bytesFromHexString(document.getElementById('input').value);
+        const sep = document.getElementById('groupSep').value;
+        const groupSize = Number(document.getElementById('groupSize').value) || 1;
+        const caseOpt = document.getElementById('caseOpt').value;
+        const groups = [];
+        for (let i = 0; i < bytes.length; i += groupSize) {
+          const slice = bytes.slice(i, i + groupSize);
+          groups.push(slice.map(b => b.toString(16).padStart(2, '0')).join(''));
+        }
+        let out;
+        if (sep !== ' ') {
+          const joined = groups.map(g => (g.match(/.{1,2}/g) || []).join(sep)).join(' ');
+          out = (caseOpt === 'lower') ? joined.toLowerCase() : joined.toUpperCase();
+        } else {
+          out = hexFromBytes(bytes, ' ', caseOpt === 'upper');
+        }
+        document.getElementById('output').textContent = out;
+        setStatus('Agrupado.', 'success');
+      } catch (e) { setStatus('Erro: ' + e.message, 'error'); }
+    }
+
+    function aplicarCase() {
+      const out = document.getElementById('output').textContent;
+      if (!out) { setStatus('Sem output para ajustar case.', 'error'); return; }
+      const caseOpt = document.getElementById('caseOpt').value;
+      document.getElementById('output').textContent = (caseOpt === 'lower') ? out.toLowerCase() : out.toUpperCase();
+      setStatus('Case aplicado.', 'success');
+    }
+
+    function hexParaTexto() {
+      try {
+        const bytes = bytesFromHexString(document.getElementById('input').value);
+        const chars = bytes.map(b => (b >= 32 && b <= 126) ? String.fromCharCode(b) : '\\x' + b.toString(16).padStart(2,'0').toUpperCase()).join('');
+        document.getElementById('output').textContent = chars;
+        setStatus('Convertido hex → texto.', 'success');
+      } catch (e) { setStatus('Erro: ' + e.message, 'error'); }
+    }
+
+    function textoParaHex() {
+      try {
+        let texto = document.getElementById('input').value || '';
+        const append = document.getElementById('appendEnd').value;
+        if (append === 'CR') texto += '\r';
+        else if (append === 'LF') texto += '\n';
+        else if (append === 'CRLF') texto += '\r\n';
+        const bytes = [];
+        for (let i = 0; i < texto.length; i++) bytes.push(texto.charCodeAt(i));
+        const out = hexFromBytes(bytes, ' ', document.getElementById('caseOpt').value === 'upper');
+        document.getElementById('output').textContent = out;
+        setStatus('Texto convertido para hex.', 'success');
+      } catch (e) { setStatus('Erro: ' + e.message, 'error'); }
+    }
+
+    function appendCRC() {
+      try {
+        const bytes = bytesFromHexString(document.getElementById('input').value);
+        const crc = crc16Modbus(bytes);
+        const outBytes = bytes.concat([crc.low, crc.high]);
+        document.getElementById('output').textContent = hexFromBytes(outBytes, ' ', document.getElementById('caseOpt').value === 'upper');
+        setStatus('CRC16 (Modbus) calculado e adicionado. Valor: 0x' + crc.crc16.toString(16).padStart(4,'0').toUpperCase(), 'success');
+      } catch (e) { setStatus('Erro: ' + e.message, 'error'); }
+    }
+
+    function verificarCRC() {
+      try {
+        const bytes = bytesFromHexString(document.getElementById('input').value);
+        if (bytes.length < 2) { setStatus('Entrada muito curta para CRC.', 'error'); return; }
+        const payload = bytes.slice(0, -2);
+        const recvLow = bytes[bytes.length - 2];
+        const recvHigh = bytes[bytes.length - 1];
+        const crc = crc16Modbus(payload);
+        if (crc.low === recvLow && crc.high === recvHigh) {
+          setStatus('CRC OK. (' + crc.crc16.toString(16).padStart(4,'0').toUpperCase() + ')', 'success');
+        } else {
+          setStatus('CRC inválido. Calculado: 0x' + crc.crc16.toString(16).padStart(4,'0').toUpperCase() +
+            ' Recebido: 0x' + ((recvHigh<<8)|recvLow).toString(16).padStart(4,'0').toUpperCase(), 'error');
+        }
+      } catch (e) { setStatus('Erro: ' + e.message, 'error'); }
+    }
+
+    function mostrarArrayBytes() {
+      try {
+        const bytes = bytesFromHexString(document.getElementById('input').value);
+        document.getElementById('output').textContent = '[' + bytes.join(', ') + ']';
+        setStatus('Array de bytes mostrado (valores decimais).', 'success');
+      } catch (e) { setStatus('Erro: ' + e.message, 'error'); }
+    }
+
+    function appendHexBytesSequence(seq) {
+      try {
+        let bytes = _getBytesFromOutputOrInput();
+        bytes = bytes.concat(seq);
+        document.getElementById('output').textContent = hexFromBytes(bytes, ' ', document.getElementById('caseOpt').value === 'upper');
+        setStatus('Bytes ' + seq.map(b => b.toString(16).padStart(2,'0').toUpperCase()).join(' ') + ' adicionados.', 'success');
+      } catch (e) { setStatus('Erro: ' + e.message, 'error'); }
+    }
+
+    function appendCR_Hex() { appendHexBytesSequence([0x0D]); }
+    function appendLF_Hex() { appendHexBytesSequence([0x0A]); }
+    function appendCRLF_Hex() { appendHexBytesSequence([0x0D,0x0A]); }
+
+    function limparCampos() {
+      document.getElementById('input').value = '';
+      document.getElementById('output').textContent = '';
+      setStatus('');
+      atualizarInfos();
+    }
+
+    function copiarEntrada() {
+      const txt = document.getElementById('input').value;
+      if (!txt.trim()) { setStatus('Nada para copiar da entrada.', 'error'); return; }
+      copiarTexto(txt).then(() => setStatus('Entrada copiada.', 'success')).catch(e => setStatus('Erro: ' + e, 'error'));
+    }
+
+    function copiarOutput() {
+      const txt = document.getElementById('output').textContent;
+      if (!txt.trim()) { setStatus('Nada para copiar do resultado.', 'error'); return; }
+      copiarTexto(txt).then(() => setStatus('Output copiado.', 'success')).catch(e => setStatus('Erro: ' + e, 'error'));
+    }
+
+    // ---------- NOVO: INTERPRETADOR MODBUS ----------
+    function interpretarModbus() {
+      try {
+        const bytes = _getBytesFromOutputOrInput();
+        if (!bytes || bytes.length === 0) { setStatus('Nada para interpretar.', 'error'); return; }
+
+        const lines = [];
+        lines.push('Trama (bytes): ' + hexFromBytes(bytes, ' ', true));
+        if (bytes.length < 2) { lines.push('Trama muito curta para Modbus.'); document.getElementById('output').textContent = lines.join('\n'); setStatus('Interpretação parcial.', 'error'); return; }
+
+        // CRC check (se houver pelo menos 3 bytes)
+        let crcOk = null;
+        if (bytes.length >= 3) {
+          try {
+            const payload = bytes.slice(0, -2);
+            const recvLow = bytes[bytes.length - 2];
+            const recvHigh = bytes[bytes.length - 1];
+            const crc = crc16Modbus(payload);
+            const recvCrc = (recvHigh << 8) | recvLow;
+            if ((crc.low === recvLow && crc.high === recvHigh)) {
+              crcOk = true;
+              lines.push('CRC16: OK — 0x' + crc.crc16.toString(16).padStart(4,'0').toUpperCase());
+            } else {
+              crcOk = false;
+              lines.push('CRC16: INVÁLIDO — calculado 0x' + crc.crc16.toString(16).padStart(4,'0').toUpperCase() +
+                         ' | recebido 0x' + recvCrc.toString(16).padStart(4,'0').toUpperCase());
+            }
+          } catch (e) {
+            lines.push('CRC16: não pôde ser verificado (' + e.message + ')');
+          }
+        } else {
+          lines.push('CRC16: insuficiente para verificar.');
+        }
+
+        // Interpret fields
+        const address = bytes[0];
+        const func = bytes[1];
+        lines.push(`Endereço (slave): 0x${address.toString(16).padStart(2,'0').toUpperCase()} (${address})`);
+        lines.push(`Função: 0x${func.toString(16).padStart(2,'0').toUpperCase()} (${func}) — ${funName(func)}`);
+
+        // exception?
+        /*
+        if (func & 0x80) {
+          const ex = bytes[2] !== undefined ? bytes[2] : null;
+          lines.push('Resposta de exceção detectada.');
+          if (ex !== null) {
+            lines.push(`Código de exceção: 0x${ex.toString(16).padStart(2,'0').toUpperCase()} (${ex}) — ${exceptionName(ex)}`);
+          } else lines.push('Sem código de exceção disponível.');
+          document.getElementById('output').textContent = lines.join('\n');
+          setStatus('Interpretação concluída (exceção).', crcOk ? 'success' : 'error');
+          return;
+        }/*/
+        if (func & 0x80) {
+          const originalFunc = func & 0x7F;
+          const ex = bytes[2] !== undefined ? bytes[2] : null;
+
+          lines.push('⚠ Resposta de EXCEÇÃO detectada.');
+          lines.push(`Função original: 0x${originalFunc.toString(16).padStart(2,'0').toUpperCase()} (${originalFunc})`);
+
+          if (ex !== null) {
+            lines.push(`Código de exceção: 0x${ex.toString(16).padStart(2,'0').toUpperCase()} (${ex}) — ${exceptionName(ex)}`);
+          } else {
+            lines.push('Sem código de exceção disponível.');
+          }
+
+          document.getElementById('output').textContent = lines.join('\n');
+          setStatus('Interpretação concluída (EXCEÇÃO).', 'error');
+          return;
+        }
+
+        // dispatch por função (respostas e requisições)
+        switch (func) {
+          case 1: case 2: // Read Coils / Discrete Inputs (resposta): addr func byteCount data... CRC
+            interpretReadBits(bytes, lines, func);
+            break;
+          case 3: case 4: // Read Holding/Input Registers
+            interpretReadRegisters(bytes, lines, func);
+            break;
+          case 5: // Write Single Coil
+            interpretWriteSingleCoil(bytes, lines);
+            break;
+          case 6: // Write Single Register
+            interpretWriteSingleRegister(bytes, lines);
+            break;
+          case 15: // 0x0F Write Multiple Coils
+            interpretWriteMultipleCoils(bytes, lines);
+            break;
+          case 16: // 0x10 Write Multiple Registers
+            interpretWriteMultipleRegisters(bytes, lines);
+            break;
+          default:
+            // generic: show payload bytes (excluding addr/func and CRC)
+            const payload = bytes.slice(2, bytes.length - 2);
+            lines.push('Payload (raw): ' + (payload.length ? hexFromBytes(payload, ' ', true) : '(vazio)'));
+            lines.push('Campos não especialmente interpretados para esta função.');
+        }
+
+        document.getElementById('output').textContent = lines.join('\n');
+        setStatus('Interpretação concluída.', crcOk ? 'success' : 'error');
+
+      } catch (e) {
+        setStatus('Erro ao interpretar: ' + e.message, 'error');
+      }
+    }
+/*
+    function funName(f) {
+      const map = {
+        1: 'Read Coils (leitura bobinas)',
+        2: 'Read Discrete Inputs',
+        3: 'Read Holding Registers',
+        4: 'Read Input Registers',
+        5: 'Write Single Coil',
+        6: 'Write Single Register',
+        15: 'Write Multiple Coils',
+        16: 'Write Multiple Registers'
+      };
+      return map[f] || 'Função desconhecida / personalizada';
+    }*/
+   function funName(f) {
+      const map = {
+        1: 'Read Coils (leitura bobinas)',
+        2: 'Read Discrete Inputs',
+        3: 'Read Holding Registers',
+        4: 'Read Input Registers',
+        5: 'Write Single Coil',
+        6: 'Write Single Register',
+        15: 'Write Multiple Coils',
+        16: 'Write Multiple Registers'
+      };
+
+      // Se for exceção (bit 7 ligado)
+      if (f & 0x80) {
+        const original = f & 0x7F; // remove bit de erro
+        const baseName = map[original] || 'Função desconhecida';
+        return baseName + ' (EXCEÇÃO)';
+      }
+
+      return map[f] || 'Função desconhecida / personalizada';
+    }
+
+    function exceptionName(code) {
+      const map = {1:'Illegal Function',2:'Illegal Data Address',3:'Illegal Data Value',4:'Slave Device Failure',5:'Acknowledge',6:'Slave Device Busy',8:'Memory Parity Error'};
+      return map[code] || 'Código desconhecido';
+    }
+
+    // helpers de interpretação
+    function interpretReadBits(bytes, lines, func) {
+      // espera: addr, func, byteCount, data..., CRC
+      if (bytes.length < 5) { lines.push('Trama muito curta para Read Bits.'); return; }
+      const byteCount = bytes[2];
+      const data = bytes.slice(3, 3 + byteCount);
+      lines.push(`Byte count: ${byteCount}`);
+      lines.push('Dados (hex): ' + hexFromBytes(data, ' ', true));
+      // contar bits: normalmente request pedirá N coils, mas aqui só temos bytes; extrair bits LSB-first
+      const bits = [];
+      for (let i = 0; i < byteCount * 8; i++) {
+        const b = data[Math.floor(i / 8)];
+        const bit = (b >> (i % 8)) & 1;
+        bits.push(bit);
+      }
+      // mostrar primeiros 128 bits por segurança
+      const maxShow = Math.min(bits.length, 128);
+      lines.push(`Bits (LSB first) — mostrando ${maxShow} primeiros:`);
+      const bitLines = [];
+      for (let i = 0; i < maxShow; i++) bitLines.push(`${i}: ${bits[i]}`);
+      lines.push(bitLines.join(', '));
+    }
+
+    function interpretReadRegisters(bytes, lines, func) {
+
+
+        if (func === 3) {
+        if (bytes.length === 8) {
+          // Requisição
+          const start = (bytes[2]<<8)|bytes[3];
+          const qty = (bytes[4]<<8)|bytes[5];
+          lines.push("Requisição: Read Holding Registers");
+          lines.push(`Start address: ${start} (0x${start.toString(16).padStart(4,'0')})`);
+          lines.push(`Quantity of registers: ${qty}`);
+        } else {
+          // Resposta
+          const byteCount = bytes[2];
+          const data = bytes.slice(3, 3+byteCount);
+          lines.push("Resposta: Read Holding Registers");
+          lines.push(`Byte count: ${byteCount}`);
+          let regs=[];
+          for (let i=0;i<data.length;i+=2){
+            regs.push((data[i]<<8)|data[i+1]);
+          }
+          if (regs.length>0) lines.push("Registros: " + regs.join(", "));
+        }
+        return;
+        }
+        if (func === 4) {
+            if (bytes.length === 8) {
+            // Requisição
+            const start = (bytes[2]<<8)|bytes[3];
+            const qty = (bytes[4]<<8)|bytes[5];
+            lines.push("Requisição: Read Input Registers");
+            lines.push(`Start address: ${start} (0x${start.toString(16).padStart(4,'0')})`);
+            lines.push(`Quantity of registers: ${qty}`);
+            } else {
+            // Resposta
+            const byteCount = bytes[2];
+            const data = bytes.slice(3, 3+byteCount);
+            lines.push("Resposta: Read Input Registers");
+            lines.push(`Byte count: ${byteCount}`);
+            let regs=[];
+            for (let i=0;i<data.length;i+=2){
+                regs.push((data[i]<<8)|data[i+1]);
+            }
+            if (regs.length>0) lines.push("Registros: " + regs.join(", "));
+            }
+            return;
+        }
+    }
+
+    function interpretWriteSingleCoil(bytes, lines) {
+      // request/response: addr, func, outAddrHi, outAddrLo, outValHi, outValLo, CRC
+      if (bytes.length < 6) { lines.push('Trama muito curta para Write Single Coil.'); return; }
+      const outAddr = (bytes[2] << 8) | bytes[3];
+      const outVal = (bytes[4] << 8) | bytes[5];
+      lines.push(`Endereço de saída (coil): ${outAddr} (0x${outAddr.toString(16).padStart(4,'0')})`);
+      lines.push(`Valor (raw): 0x${outVal.toString(16).padStart(4,'0')} => ${outVal === 0xFF00 ? 'ON' : outVal === 0x0000 ? 'OFF' : 'Valor não padrão'}`);
+    }
+
+    function interpretWriteSingleRegister(bytes, lines) {
+      // addr, func, regAddrHi, regAddrLo, regValHi, regValLo, CRC
+      if (bytes.length < 6) { lines.push('Trama muito curta para Write Single Register.'); return; }
+      const regAddr = (bytes[2] << 8) | bytes[3];
+      const regVal = (bytes[4] << 8) | bytes[5];
+      lines.push(`Endereço de registrador: ${regAddr} (0x${regAddr.toString(16).padStart(4,'0')})`);
+      lines.push(`Valor do registrador: 0x${regVal.toString(16).padStart(4,'0')} (${regVal})`);
+    }
+
+    function interpretWriteMultipleCoils(bytes, lines) {
+      // request: addr, func, startHi, startLo, qtyHi, qtyLo, byteCount, data..., CRC
+      // response: addr, func, startHi, startLo, qtyHi, qtyLo, CRC
+      if (bytes.length < 6) { lines.push('Trama muito curta para Write Multiple Coils.'); return; }
+      const start = (bytes[2] << 8) | bytes[3];
+      const qty = (bytes[4] << 8) | bytes[5];
+      lines.push(`Start address: ${start} (0x${start.toString(16).padStart(4,'0')})`);
+      lines.push(`Quantity coils: ${qty}`);
+      if (bytes.length > 8) {
+        const byteCount = bytes[6];
+        const data = bytes.slice(7, 7 + byteCount);
+        lines.push(`Byte count: ${byteCount}`);
+        lines.push('Dados (hex): ' + hexFromBytes(data, ' ', true));
+        // expand bits
+        const bits = [];
+        for (let i = 0; i < byteCount * 8; i++) {
+          const b = data[Math.floor(i / 8)];
+          const bit = (b >> (i % 8)) & 1;
+          bits.push(bit);
+        }
+        const toShow = Math.min(bits.length, qty);
+        lines.push(`Coils (LSB first) — primeiros ${toShow}: ` + bits.slice(0, toShow).map((v,i)=>`${start+i}:${v}`).join(', '));
+      }
+    }
+
+    function interpretWriteMultipleRegisters(bytes, lines) {
+      // request: addr, func, startHi, startLo, qtyHi, qtyLo, byteCount, data..., CRC
+      // response: addr, func, startHi, startLo, qtyHi, qtyLo, CRC
+      if (bytes.length < 6) { lines.push('Trama muito curta para Write Multiple Registers.'); return; }
+      const start = (bytes[2] << 8) | bytes[3];
+      const qty = (bytes[4] << 8) | bytes[5];
+      lines.push(`Start address: ${start} (0x${start.toString(16).padStart(4,'0')})`);
+      lines.push(`Quantity registers: ${qty}`);
+      if (bytes.length > 8) {
+        const byteCount = bytes[6];
+        const data = bytes.slice(7, 7 + byteCount);
+        lines.push(`Byte count: ${byteCount}`);
+        lines.push('Dados (hex): ' + hexFromBytes(data, ' ', true));
+        const regs = [];
+        for (let i = 0; i < data.length; i += 2) {
+          const hi = data[i], lo = data[i+1] || 0;
+          const val = (hi << 8) | lo;
+          regs.push({ idx: start + i/2, val });
+        }
+        lines.push('Registros escritos:');
+        regs.forEach(r => lines.push(`R${r.idx}: 0x${r.val.toString(16).padStart(4,'0').toUpperCase()} (${r.val})`));
+      }
+    }
+
+    // ---------- final ----------
+    // inicial
+    atualizarInfos();
+  </script>
+
+</body>
+</html>

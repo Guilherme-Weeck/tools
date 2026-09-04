@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mapeador de portas ↔ IDs</title>
+  <style>
+    body{font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial;max-width:920px;margin:24px auto;padding:12px;color:#111}
+    h1{font-size:1.25rem;margin-bottom:.25rem}
+    label{display:block;margin-top:8px}
+    textarea{width:100%;height:220px;padding:8px;font-family:monospace;font-size:0.9rem}
+    input[type=number], input[type=text]{width:160px;padding:6px}
+    .row{display:flex;gap:8px;align-items:center;margin-top:8px}
+    button{padding:8px 10px;border-radius:6px;border:1px solid #ccc;background:#fafafa;cursor:pointer}
+    button:hover{background:#f0f0f0}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .output{margin-top:10px}
+    pre{background:#f6f6f6;padding:12px;border-radius:6px;white-space:pre-wrap}
+    footer{margin-top:18px;font-size:0.85rem;color:#444}
+    .small{font-size:0.85rem;color:#555}
+    .inline{display:inline-flex;align-items:center;gap:6px}
+  </style>
+</head>
+<body>
+  <h1>Mapeador de portas para IDs</h1>
+  <p class="small">Cole ou digite o texto que contenha os IDs. Você pode escolher o modo de busca: procurar por <strong>prefixo + 4 hex</strong> (ex.: <code>0000AA17</code>) ou busca por 4 hex</strong> (ex.: <code>AA17</code>) dentro do texto.</p>
+
+  <label for="input">Texto com IDs (cole aqui)</label>
+  <textarea id="input" placeholder="Cole aqui o texto..." spellcheck="false"></textarea>
+
+  <div class="row">
+    <label for="startPort">Porta inicial:</label>
+    <input id="startPort" type="number" value="6000" min="1" />
+    <label style="margin-left:12px" class="inline"><input id="dedupe" type="checkbox" checked /> Remover duplicados</label>
+  </div>
+
+  <fieldset style="margin-top:10px;padding:8px;border-radius:6px;border:1px solid #ddd">
+    <legend><strong>Opções de busca e prefixo</strong></legend>
+
+    <div class="row">
+      <label class="inline">
+        <input id="searchWithPrefix" type="checkbox" checked />
+        Procurar por prefixo + 4 hex (ex.: <code>0000AA17</code>)
+      </label>
+      <label for="searchPrefix" style="margin-left:8px">Prefixo de busca:</label>
+      <input id="searchPrefix" type="text" value="0000" maxlength="4" />
+    </div>
+  </fieldset>
+
+  <div class="controls">
+    <button id="parseBtn" style="background:#eef5ff; border-color:#b4d5ff;">Gerar mapeamento</button>
+    <button id="cleanSpacesBtn">Limpar espaços do texto</button> 
+    <button id="copyBtn">Copiar saída</button>
+    <button id="downloadBtn">Baixar portas.txt</button>
+  </div>
+
+  <div class="output">
+    <label>Saída:</label>
+    <pre id="output" aria-live="polite"></pre>
+  </div>
+
+  <footer>
+    <strong>Notas:</strong>
+    <ul>
+      <li>Se a opção <em>Procurar por prefixo</em> estiver habilitada, o campo <code>Prefixo de busca</code> (preset <code>0000</code>) será usado para localizar ocorrências do tipo <code>prefixo + 4 hex</code> no texto. Se desabilitada, o sistema procura tokens de 4 hex isolados (ex.: <code>AA17</code>).</li>
+      <li>Todos os IDs na saída são convertidos para <strong>MAIÚSCULAS</strong>.</li>
+    </ul>
+  </footer>
+
+<script>
+function escapeRegex(s){
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function extractIds(text, opts){
+  if(!text) return [];
+  const searchWithPrefix = !!opts.searchWithPrefix;
+  const prefix = (opts.prefix || '').toUpperCase();
+
+  const found = [];
+
+  if(searchWithPrefix && prefix){
+    const rx = new RegExp('\\b' + escapeRegex(prefix) + '[0-9A-Fa-f]{4}\\b','g');
+    let m;
+    while((m = rx.exec(text)) !== null){
+      const token = m[0].toUpperCase();
+      const idPart = token.slice(prefix.length);
+      found.push({raw: token, idPart});
+    }
+  } else {
+    const rx4 = /\b[0-9A-Fa-f]{4}\b/g;
+    let m;
+    while((m = rx4.exec(text)) !== null){
+      const token = m[0].toUpperCase();
+      found.push({raw: token, idPart: token});
+    }
+  }
+
+  return found.map(o => o.idPart.toUpperCase());
+}
+
+function uniquePreserveOrder(arr){
+  const seen = new Set();
+  const out = [];
+  for(const v of arr){
+    if(!seen.has(v)){
+      seen.add(v);
+      out.push(v);
+    }
+  }
+  return out;
+}
+
+function generateMapping(ids, startPort, outputPrefix){
+  const lines = [];
+  let p = Number(startPort) || 0;
+  for(const id of ids){
+    const outId = outputPrefix.toUpperCase() + id.toUpperCase();
+    lines.push(p + "=" + outId);
+    p++;
+  }
+  return lines.join('\n') + '\n#';
+}
+
+function formatAndShow(){
+  const text = document.getElementById('input').value;
+  const startPort = parseInt(document.getElementById('startPort').value,10) || 0;
+  const dedupe = document.getElementById('dedupe').checked;
+  const searchWithPrefix = document.getElementById('searchWithPrefix').checked;
+  const searchPrefix = document.getElementById('searchPrefix').value || '';
+
+  const addOutputPrefix = true;
+  const outputPrefix = "0000";
+  const accept4hex = true;
+
+  if(!text.trim()){
+    document.getElementById('output').textContent = '';
+    return;
+  }
+
+  const ids = extractIds(text, {searchWithPrefix, prefix: searchPrefix, accept4: accept4hex});
+  let finalIds = ids;
+  if(dedupe) finalIds = uniquePreserveOrder(ids);
+
+  const out = generateMapping(finalIds, startPort, outputPrefix, addOutputPrefix);
+  document.getElementById('output').textContent = out;
+}
+
+// --- ALTERAÇÃO AQUI ---
+document.getElementById('cleanSpacesBtn').addEventListener('click', () => {
+  const inputEl = document.getElementById('input');
+  
+  // O padrão /[ \t]+/g remove apenas espaços normais e tabulações (ignora \n e \r)
+  let cleanedText = inputEl.value.replace(/[ \t]+/g, '');
+  
+  inputEl.value = cleanedText;
+});
+
+document.getElementById('parseBtn').addEventListener('click', formatAndShow);
+
+document.getElementById('copyBtn').addEventListener('click', ()=>{
+  const out = document.getElementById('output').textContent;
+  if(!out) return alert('Saída vazia');
+  navigator.clipboard.writeText(out).then(()=>{
+    alert('Copiado para a área de transferência');
+  }, ()=>alert('Falha ao copiar'));
+});
+
+document.getElementById('downloadBtn').addEventListener('click', ()=>{
+  const out = document.getElementById('output').textContent;
+  if(!out) return alert('Saída vazia');
+  const blob = new Blob([out],{type:'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'portas.txt';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+});
+</script>
+</body>
+</html>

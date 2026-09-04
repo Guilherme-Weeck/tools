@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- ALTERE AQUI -->
+  <title>Nome da Ferramenta</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #f5f7fb;
+      --surface: #ffffff;
+      --border: #e5e7eb;
+      --text: #111827;
+      --muted: #6b7280;
+      --button: #374151;
+      --button-hover: #1f2937;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    /* =====================================================
+       CABEÇALHO
+       ===================================================== */
+
+    header {
+      background: #111827;
+      color: white;
+      padding: 28px 20px 76px;
+    }
+
+    .header-content {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .back-link {
+      display: inline-block;
+      color: #d1d5db;
+      text-decoration: none;
+      font-size: 14px;
+      margin-bottom: 28px;
+    }
+
+    .back-link:hover {
+      color: white;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 10px;
+      border: 1px solid #374151;
+      border-radius: 999px;
+      color: #d1d5db;
+      font-size: 12px;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 34px;
+      line-height: 1.2;
+    }
+
+    .subtitle {
+      max-width: 780px;
+      margin: 12px 0 0;
+      color: #9ca3af;
+      line-height: 1.6;
+      font-size: 15px;
+    }
+
+    /* =====================================================
+       ÁREA PRINCIPAL
+       ===================================================== */
+
+    main {
+      max-width: 1100px;
+      margin: -44px auto 40px;
+      padding: 0 20px;
+    }
+
+    /* Painel padrão */
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 24px rgba(17, 24, 39, 0.06);
+    }
+
+    .panel-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 18px;
+    }
+
+    /* =====================================================
+       CAMPOS
+       ===================================================== */
+
+    .field {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--text);
+      padding: 12px 14px;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 15px;
+      outline: none;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: #9ca3af;
+      box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.18);
+    }
+
+    textarea {
+      min-height: 150px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    /* Para dados técnicos, hexadecimal, JSON, Modbus etc. */
+
+    .code-input,
+    .code-output {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 14px;
+    }
+
+    /* =====================================================
+       GRID
+       ===================================================== */
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    /* =====================================================
+       BOTÕES
+       ===================================================== */
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      background: var(--button);
+      color: white;
+      padding: 11px 16px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: var(--button-hover);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    /* =====================================================
+       RESULTADO
+       ===================================================== */
+
+    .output {
+      width: 100%;
+      min-height: 180px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #f9fafb;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 14px;
+      white-space: pre-wrap;
+      overflow: auto;
+    }
+
+    /* =====================================================
+       MENSAGENS
+       ===================================================== */
+
+    .status {
+      margin-top: 14px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .error {
+      color: #dc2626;
+    }
+
+    .success {
+      color: #16a34a;
+    }
+
+    .info {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    /* =====================================================
+       RODAPÉ
+       ===================================================== */
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      padding: 10px 20px 30px;
+    }
+
+    /* =====================================================
+       RESPONSIVIDADE
+       ===================================================== */
+
+    @media (max-width: 700px) {
+
+      header {
+        padding: 22px 16px 68px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+
+      main {
+        padding: 0 16px;
+      }
+
+      .panel {
+        padding: 18px;
+      }
+
+      .grid,
+      .grid-3 {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .actions {
+        flex-direction: column;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- =====================================================
+       CABEÇALHO
+       ===================================================== -->
+
+  <header>
+
+    <div class="header-content">
+
+      <!-- Caminho relativo para voltar à página principal -->
+      <a class="back-link" href="../../">
+        ← Voltar para ferramentas
+      </a>
+
+      <!-- ALTERE AQUI -->
+      <div class="badge">
+        Categoria da ferramenta
+      </div>
+
+      <!-- ALTERE AQUI -->
+      <h1>
+        Nome da Ferramenta
+      </h1>
+
+      <!-- ALTERE AQUI -->
+      <p class="subtitle">
+        Descrição curta explicando o que esta ferramenta faz.
+      </p>
+
+    </div>
+
+  </header>
+
+
+  <!-- =====================================================
+       CONTEÚDO DA FERRAMENTA
+
+       É PRINCIPALMENTE AQUI QUE CADA NOVA FERRAMENTA
+       DEVE SER ADAPTADA.
+       ===================================================== -->
+
+  <main>
+
+
+    <!-- ===================================================
+         EXEMPLO DE PAINEL
+         =================================================== -->
+
+    <section class="panel">
+
+      <div class="panel-title">
+        Configuração
+      </div>
+
+
+      <div class="grid">
+
+        <div class="field">
+
+          <label for="entrada">
+            Entrada
+          </label>
+
+          <input
+            type="text"
+            id="entrada"
+            placeholder="Digite um valor..."
+          >
+
+        </div>
+
+
+        <div class="field">
+
+          <label for="tipo">
+            Tipo
+          </label>
+
+          <select id="tipo">
+
+            <option value="opcao1">
+              Opção 1
+            </option>
+
+            <option value="opcao2">
+              Opção 2
+            </option>
+
+          </select>
+
+        </div>
+
+      </div>
+
+
+      <div class="actions">
+
+        <button onclick="executar()">
+          Executar
+        </button>
+
+        <button onclick="limpar()">
+          Limpar
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- ===================================================
+         EXEMPLO DE RESULTADO
+         =================================================== -->
+
+    <section class="panel">
+
+      <div class="panel-title">
+        Resultado
+      </div>
+
+      <pre id="resultado" class="output"></pre>
+
+      <div id="status" class="status"></div>
+
+    </section>
+
+
+  </main>
+
+
+  <!-- =====================================================
+       RODAPÉ
+       ===================================================== -->
+
+  <footer>
+    Ferramentas pessoais · GitHub Pages
+  </footer>
+
+
+  <!-- =====================================================
+       JAVASCRIPT
+
+       Coloque aqui o JavaScript específico da ferramenta.
+
+       IMPORTANTE:
+       Se estiver adaptando uma ferramenta existente,
+       normalmente basta copiar o JavaScript original
+       para este local e preservar os IDs dos elementos.
+       ===================================================== -->
+
+  <script>
+
+    function executar() {
+
+      const entrada =
+        document.getElementById("entrada").value;
+
+      document.getElementById("resultado").textContent =
+        entrada;
+
+    }
+
+
+    function limpar() {
+
+      document.getElementById("entrada").value = "";
+
+      document.getElementById("resultado").textContent = "";
+
+      document.getElementById("status").textContent = "";
+
+    }
+
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<title>Gerador Modbus - Ajuste Data/Hora</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width:820px; margin:20px auto; background:#fafafa; padding:18px; color:#1b2b33; }
+  h1 { margin:0 0 12px 0; color:#0b4b66; font-size:20px; }
+  .card { background:#fff; border-radius:8px; padding:14px; box-shadow:0 1px 4px rgba(0,0,0,0.08); margin-bottom:12px; }
+  label { display:inline-block; margin:6px 8px 4px 0; font-size:14px; color:#333; }
+  input[type="number"], select { padding:6px 8px; border-radius:4px; border:1px solid #ccc; font-size:14px; }
+  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
+  button { background:#007BFF; color:#fff; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:14px; }
+  button.secondary { background:#6c757d; }
+  pre { background:#eef6fb; padding:12px; border-radius:6px; overflow:auto; font-family:monospace; }
+  .time-inputs input, .date-inputs input { width:70px; text-align:center; }
+  .outputs { display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:12px; }
+  .note { font-size:13px; color:#444; margin-top:8px; }
+</style>
+</head>
+<body>
+  <h1>Gerador Modbus — Ajuste Data / Hora</h1>
+
+  <div class="card">
+    <div class="row">
+      <label>ID Modbus</label>
+      <input id="modbusId" type="number" min="0" max="247" value="1" style="width:90px" />
+      <label>Registro inicial</label>
+      <select id="startSelect">
+        <option value="502">502 (0x01F6)</option>
+        <option value="64502">64502 (0xFBF6)</option>
+      </select>
+    </div>
+
+    <div class="row">
+      <div style="flex:1">
+        <label>Hora (hh:mm:ss)</label>
+        <div class="time-inputs" style="display:flex;gap:6px;align-items:center;">
+          <input id="hours" type="number" min="0" max="23" value="0" /> :
+          <input id="minutes" type="number" min="0" max="59" value="0" /> :
+          <input id="seconds" type="number" min="0" max="59" value="0" />
+        </div>
+      </div>
+
+      <div style="flex:1">
+        <label>Data (DD/MM/AA)</label>
+        <div class="date-inputs" style="display:flex;gap:6px;align-items:center;">
+          <input id="day" type="number" min="1" max="31" value="1" /> /
+          <input id="month" type="number" min="1" max="12" value="1" /> /
+          <input id="year" type="number" min="1" max="99" value="23" />
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <button onclick="setNow()">Usar data/hora atual</button>
+      <button onclick="gerarTrama()">Gerar trama</button>
+      <button class="secondary" onclick="limpar()">Limpar</button>
+    </div>
+
+   
+  </div>
+
+  <div class="card">
+    <h3>Saída</h3>
+    <div class="outputs">
+      <div>
+        <strong>Hex (legível, com espaços)</strong>
+        <pre id="hexSpaced">Clique em "Gerar trama".</pre>
+        <button onclick="copiarTramaEspacada()">Copiar (com espaços)</button>
+      </div>
+      <br>
+      <div>
+        <strong>Hex (minificado — sem espaços)</strong>
+        <pre id="hexMinified">—</pre>
+        <button onclick="copiarTramaMinificada()">Copiar (minificado)</button>
+      </div>
+    </div>
+
+    <div style="margin-top:12px">
+      <strong>Quebra / Campos</strong>
+      <pre id="breakdown">—</pre>
+    </div>
+  </div>
+
+<script>
+  // util
+  function toHex(n,pad=2){ return (n & 0xFF).toString(16).padStart(pad,'0').toUpperCase(); }
+
+  function crc16Modbus(bytes){
+    let crc=0xFFFF;
+    for(let pos=0; pos<bytes.length; pos++){
+      crc ^= bytes[pos];
+      for(let i=0;i<8;i++){
+        if ((crc & 0x0001)!==0){ crc >>= 1; crc ^= 0xA001; } else crc >>= 1;
+      }
+    }
+    return { crc16: crc & 0xFFFF, low: crc & 0xFF, high: (crc >> 8) & 0xFF };
+  }
+
+  // DOM
+  const hexSpaced = document.getElementById('hexSpaced');
+  const hexMinified = document.getElementById('hexMinified');
+  const breakdown = document.getElementById('breakdown');
+
+  function setNow(){
+    const now = new Date();
+    document.getElementById('seconds').value = now.getSeconds();
+    document.getElementById('minutes').value = now.getMinutes();
+    document.getElementById('hours').value = now.getHours();
+    document.getElementById('day').value = now.getDate();
+    document.getElementById('month').value = now.getMonth()+1;
+    document.getElementById('year').value = now.getFullYear() % 100;
+  }
+
+  function clamp(v,min,max,def){
+    let n = parseInt(v);
+    if (isNaN(n)) return def;
+    if (n<min) return min;
+    if (n>max) return max;
+    return n;
+  }
+
+  // ---- mapping: start selection -> high byte ----
+  function highByteForStart(sel){
+    // sel is string '502' or '64502'
+    if (sel === '502') return 0x01;   // 0x01F6 = 502
+    if (sel === '64502') return 0xFB; // 0xFBF6 = 64502
+    return 0x01;
+  }
+
+  let lastBytes = null;
+
+  function regsFromInputs(){
+    const sec = clamp(document.getElementById('seconds').value,0,59,0);
+    const min = clamp(document.getElementById('minutes').value,0,59,0);
+    const hr  = clamp(document.getElementById('hours').value,0,23,0);
+    const d   = clamp(document.getElementById('day').value,1,31,1);
+    const m   = clamp(document.getElementById('month').value,1,12,1);
+    const y   = clamp(document.getElementById('year').value,1,99,23);
+    return [sec,min,hr,d,m,y,0,0,1];
+  }
+
+  function gerarTrama(){
+    try {
+      const id = clamp(document.getElementById('modbusId').value,0,247,1);
+      const sel = document.getElementById('startSelect').value;
+      const high = highByteForStart(sel);
+      const low = 0xF6; // fixed
+      const start = ((high<<8) | low) & 0xFFFF;
+      const regs = regsFromInputs(); // 9 regs
+
+      // montar frame
+      const bytes = [];
+      bytes.push(id & 0xFF);
+      bytes.push(0x10); // function
+      bytes.push((start>>8)&0xFF);
+      bytes.push(start & 0xFF);
+      bytes.push(0x00); bytes.push(0x09); // quantity 9
+      bytes.push(0x12); // bytecount 18
+      for (let r of regs){
+        r = r & 0xFFFF;
+        bytes.push((r>>8)&0xFF);
+        bytes.push(r&0xFF);
+      }
+      const crc = crc16Modbus(bytes);
+      bytes.push(crc.low); bytes.push(crc.high);
+
+      lastBytes = bytes.slice();
+
+      // outputs
+      const spaced = bytes.map(b=>toHex(b)).join(' ');
+      const minified = bytes.map(b=>toHex(b)).join('');
+      hexSpaced.textContent = spaced;
+      hexMinified.textContent = minified;
+
+      // breakdown
+      const lines = [];
+      lines.push(`Slave ID: 0x${toHex(id)} (${id})`);
+      lines.push(`Função: 0x10 (Write Multiple Registers)`);
+      lines.push(`Start: 0x${toHex((start>>8)&0xFF)}${toHex(start&0xFF)} → decimal ${start}`);
+      lines.push(`Start high byte (used): 0x${toHex(high)}`);
+      lines.push(`Quantity registers: 9`);
+      lines.push(`Byte count: 18`);
+      lines.push('');
+      const names = ['Segundos','Minutos','Horas','Dia','Mês','Ano','Res1','Res2','Flag'];
+      const regsVals = regsFromInputs();
+      for (let i=0;i<regsVals.length;i++){
+        const v = regsVals[i] & 0xFFFF;
+        lines.push(`${names[i].padEnd(8)} : 0x${v.toString(16).padStart(4,'0').toUpperCase()} (${v})`);
+      }
+      lines.push('');
+      lines.push(`CRC16 (Modbus): 0x${crc.crc16.toString(16).padStart(4,'0').toUpperCase()} → bytes: ${toHex(crc.low)} ${toHex(crc.high)}`);
+
+      breakdown.textContent = lines.join('\n');
+    } catch(e){
+      hexSpaced.textContent = 'Erro: ' + e.message;
+      hexMinified.textContent = '-';
+      breakdown.textContent = '-';
+      lastBytes = null;
+    }
+  }
+
+  function copiarTramaEspacada(){
+    if (!lastBytes) { alert('Gere a trama primeiro.'); return; }
+    navigator.clipboard.writeText(lastBytes.map(b=>toHex(b)).join(' ')).then(()=>alert('Copiado (com espaços).'));
+  }
+  function copiarTramaMinificada(){
+    if (!lastBytes) { alert('Gere a trama primeiro.'); return; }
+    navigator.clipboard.writeText(lastBytes.map(b=>toHex(b)).join('')).then(()=>alert('Copiado (minificado).'));
+  }
+
+  function limpar(){
+    document.getElementById('modbusId').value = 1;
+    document.getElementById('startSelect').value = '502';
+    document.getElementById('hours').value = 0;
+    document.getElementById('minutes').value = 0;
+    document.getElementById('seconds').value = 0;
+    document.getElementById('day').value = 1;
+    document.getElementById('month').value = 1;
+    document.getElementById('year').value = 23;
+    hexSpaced.textContent = 'Clique em "Gerar trama".';
+    hexMinified.textContent = '—';
+    breakdown.textContent = '—';
+    lastBytes = null;
+  }
+
+  // init
+  setNow();
+</script>
+</body>
+</html>
