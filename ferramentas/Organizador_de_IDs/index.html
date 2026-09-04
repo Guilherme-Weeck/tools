@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- ALTERE AQUI -->
-  <title>Nome da Ferramenta</title>
+  <title>Mapeador de portas ↔ IDs</title>
 
   <style>
     * {
@@ -313,17 +313,18 @@
 
       <!-- ALTERE AQUI -->
       <div class="badge">
-        Categoria da ferramenta
+        Gerardor de dados
       </div>
 
       <!-- ALTERE AQUI -->
       <h1>
-        Nome da Ferramenta
+        Mapeador de portas ↔ IDs
       </h1>
 
       <!-- ALTERE AQUI -->
       <p class="subtitle">
-        Descrição curta explicando o que esta ferramenta faz.
+        Mapear IDs especificos associados a portas TCP.
+
       </p>
 
     </div>
@@ -348,61 +349,38 @@
     <section class="panel">
 
       <div class="panel-title">
-        Configuração
+        Mapeador de portas para IDs
       </div>
 
+        <label for="input">Texto com IDs (cole aqui)</label>
+        <textarea id="input" placeholder="Cole aqui o texto..." spellcheck="false"></textarea>
 
-      <div class="grid">
-
-        <div class="field">
-
-          <label for="entrada">
-            Entrada
-          </label>
-
-          <input
-            type="text"
-            id="entrada"
-            placeholder="Digite um valor..."
-          >
-
+        <div class="row">
+          <label for="startPort">Porta inicial:</label>
+          <input id="startPort" type="number" value="6000" min="1" />
         </div>
+        <br>
+        <section class="grid">
+          <label>Remover duplicados</label>
+          <input id="dedupe" type="checkbox" checked />
+        </section>
+        <br>
+        <section class="grid">
+          <label>Procurar por prefixo + 4 hex (ex.: <code>0000AA17</code>)</label>
+          <input id="searchWithPrefix" type="checkbox" checked />
+        </section>
+        <br>
+        <section class="grid">
+          <label for="searchPrefix">Prefixo de busca:</label>
+          <input id="searchPrefix" type="text" value="0000" maxlength="4" />
+        </section>
 
-
-        <div class="field">
-
-          <label for="tipo">
-            Tipo
-          </label>
-
-          <select id="tipo">
-
-            <option value="opcao1">
-              Opção 1
-            </option>
-
-            <option value="opcao2">
-              Opção 2
-            </option>
-
-          </select>
-
+        <div class="controls">
+          <button id="parseBtn">Gerar mapeamento</button>
+          <button id="cleanSpacesBtn">Limpar espaços do texto</button> 
+          
         </div>
-
-      </div>
-
-
-      <div class="actions">
-
-        <button onclick="executar()">
-          Executar
-        </button>
-
-        <button onclick="limpar()">
-          Limpar
-        </button>
-
-      </div>
+      
 
     </section>
 
@@ -414,13 +392,15 @@
     <section class="panel">
 
       <div class="panel-title">
-        Resultado
+        Saída:
       </div>
 
-      <pre id="resultado" class="output"></pre>
-
-      <div id="status" class="status"></div>
-
+        <div class="output">
+          <pre id="output" aria-live="polite"></pre>
+        </div>
+        <br>
+        <button id="downloadBtn">Baixar portas.txt</button>
+        <button id="copyBtn">Copiar saída</button>
     </section>
 
 
@@ -436,39 +416,119 @@
   </footer>
 
 
-  <!-- =====================================================
-       JAVASCRIPT
-
-       Coloque aqui o JavaScript específico da ferramenta.
-
-       IMPORTANTE:
-       Se estiver adaptando uma ferramenta existente,
-       normalmente basta copiar o JavaScript original
-       para este local e preservar os IDs dos elementos.
-       ===================================================== -->
 
   <script>
 
-    function executar() {
-
-      const entrada =
-        document.getElementById("entrada").value;
-
-      document.getElementById("resultado").textContent =
-        entrada;
-
+    function escapeRegex(s){
+      return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
 
+    function extractIds(text, opts){
+      if(!text) return [];
+      const searchWithPrefix = !!opts.searchWithPrefix;
+      const prefix = (opts.prefix || '').toUpperCase();
 
-    function limpar() {
+      const found = [];
 
-      document.getElementById("entrada").value = "";
+      if(searchWithPrefix && prefix){
+        const rx = new RegExp('\\b' + escapeRegex(prefix) + '[0-9A-Fa-f]{4}\\b','g');
+        let m;
+        while((m = rx.exec(text)) !== null){
+          const token = m[0].toUpperCase();
+          const idPart = token.slice(prefix.length);
+          found.push({raw: token, idPart});
+        }
+      } else {
+        const rx4 = /\b[0-9A-Fa-f]{4}\b/g;
+        let m;
+        while((m = rx4.exec(text)) !== null){
+          const token = m[0].toUpperCase();
+          found.push({raw: token, idPart: token});
+        }
+      }
 
-      document.getElementById("resultado").textContent = "";
-
-      document.getElementById("status").textContent = "";
-
+      return found.map(o => o.idPart.toUpperCase());
     }
+
+    function uniquePreserveOrder(arr){
+      const seen = new Set();
+      const out = [];
+      for(const v of arr){
+        if(!seen.has(v)){
+          seen.add(v);
+          out.push(v);
+        }
+      }
+      return out;
+    }
+
+    function generateMapping(ids, startPort, outputPrefix){
+      const lines = [];
+      let p = Number(startPort) || 0;
+      for(const id of ids){
+        const outId = outputPrefix.toUpperCase() + id.toUpperCase();
+        lines.push(p + "=" + outId);
+        p++;
+      }
+      return lines.join('\n') + '\n#';
+    }
+
+    function formatAndShow(){
+      const text = document.getElementById('input').value;
+      const startPort = parseInt(document.getElementById('startPort').value,10) || 0;
+      const dedupe = document.getElementById('dedupe').checked;
+      const searchWithPrefix = document.getElementById('searchWithPrefix').checked;
+      const searchPrefix = document.getElementById('searchPrefix').value || '';
+
+      const addOutputPrefix = true;
+      const outputPrefix = "0000";
+      const accept4hex = true;
+
+      if(!text.trim()){
+        document.getElementById('output').textContent = '';
+        return;
+      }
+
+      const ids = extractIds(text, {searchWithPrefix, prefix: searchPrefix, accept4: accept4hex});
+      let finalIds = ids;
+      if(dedupe) finalIds = uniquePreserveOrder(ids);
+
+      const out = generateMapping(finalIds, startPort, outputPrefix, addOutputPrefix);
+      document.getElementById('output').textContent = out;
+    }
+
+    // --- ALTERAÇÃO AQUI ---
+    document.getElementById('cleanSpacesBtn').addEventListener('click', () => {
+      const inputEl = document.getElementById('input');
+      
+      // O padrão /[ \t]+/g remove apenas espaços normais e tabulações (ignora \n e \r)
+      let cleanedText = inputEl.value.replace(/[ \t]+/g, '');
+      
+      inputEl.value = cleanedText;
+    });
+
+    document.getElementById('parseBtn').addEventListener('click', formatAndShow);
+
+    document.getElementById('copyBtn').addEventListener('click', ()=>{
+      const out = document.getElementById('output').textContent;
+      if(!out) return alert('Saída vazia');
+      navigator.clipboard.writeText(out).then(()=>{
+        alert('Copiado para a área de transferência');
+      }, ()=>alert('Falha ao copiar'));
+    });
+
+    document.getElementById('downloadBtn').addEventListener('click', ()=>{
+      const out = document.getElementById('output').textContent;
+      if(!out) return alert('Saída vazia');
+      const blob = new Blob([out],{type:'text/plain'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'portas.txt';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
 
   </script>
 
