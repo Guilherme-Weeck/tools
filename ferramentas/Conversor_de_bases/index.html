@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conversor de Bases</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #f5f7fb;
+      --surface: #ffffff;
+      --border: #e5e7eb;
+      --text: #111827;
+      --muted: #6b7280;
+      --button: #374151;
+      --button-hover: #1f2937;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    header {
+      background: #111827;
+      color: white;
+      padding: 28px 20px 76px;
+    }
+
+    .header-content {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .back-link {
+      display: inline-block;
+      color: #d1d5db;
+      text-decoration: none;
+      font-size: 14px;
+      margin-bottom: 28px;
+    }
+
+    .back-link:hover {
+      color: white;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 10px;
+      border: 1px solid #374151;
+      border-radius: 999px;
+      color: #d1d5db;
+      font-size: 12px;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 34px;
+      line-height: 1.2;
+    }
+
+    .subtitle {
+      max-width: 720px;
+      margin: 12px 0 0;
+      color: #9ca3af;
+      line-height: 1.6;
+      font-size: 15px;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: -44px auto 40px;
+      padding: 0 20px;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 24px rgba(17, 24, 39, 0.06);
+    }
+
+    .panel-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 22px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .field {
+      min-width: 0;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--text);
+      padding: 12px 14px;
+      font: inherit;
+      font-size: 15px;
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+
+    select:focus,
+    textarea:focus {
+      border-color: #9ca3af;
+      box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.18);
+    }
+
+    textarea {
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    #valorEntrada,
+    #resultado {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 14px;
+    }
+
+    #valorEntrada {
+      min-height: 130px;
+    }
+
+    #resultado {
+      min-height: 150px;
+      background: #f9fafb;
+    }
+
+    .conversion-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      min-height: 42px;
+      color: var(--muted);
+      font-size: 24px;
+      pointer-events: none;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      background: var(--button);
+      color: white;
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background .15s, transform .05s;
+    }
+
+    button:hover {
+      background: var(--button-hover);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    .output-header {
+      margin-bottom: 8px;
+    }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      padding: 10px 20px 30px;
+    }
+
+    @media (max-width: 700px) {
+      header {
+        padding: 22px 16px 68px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+
+      main {
+        padding: 0 16px;
+      }
+
+      .panel {
+        padding: 18px;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .conversion-arrow {
+        display: none;
+      }
+
+      .actions {
+        flex-direction: column;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="header-content">
+    <a class="back-link" href="../../">← Voltar para ferramentas</a>
+
+    <div class="badge">Conversão de dados</div>
+
+    <h1>Conversor de Bases</h1>
+
+    <p class="subtitle">
+      Converta valores entre hexadecimal, decimal, binário, texto e Base64
+      de forma rápida e prática.
+    </p>
+  </div>
+</header>
+
+<main>
+
+  <section class="panel">
+    <div class="panel-title">Conversão</div>
+
+    <div class="form-grid">
+
+      <div class="field">
+        <label for="tipoEntrada">Tipo de entrada</label>
+        <select id="tipoEntrada">
+          <option value="hex">Hexadecimal</option>
+          <option value="dec">Decimal</option>
+          <option value="bin">Binário</option>
+          <option value="txt">Texto</option>
+          <option value="b64">Base64</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="tipoSaida">Converter para</label>
+        <select id="tipoSaida">
+          <option value="txt">Texto</option>
+          <option value="hex">Hexadecimal</option>
+          <option value="dec">Decimal</option>
+          <option value="bin">Binário</option>
+          <option value="b64">Base64</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="valorEntrada">Valor de entrada</label>
+        <textarea id="valorEntrada" rows="5"
+          placeholder="Digite ou cole o valor que deseja converter..."></textarea>
+      </div>
+
+      <div class="conversion-arrow">→</div>
+
+    </div>
+
+    <div class="actions">
+      <button onclick="converter()">Converter</button>
+      <button onclick="copiarResultado()">Copiar Resultado</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="output-header">
+      <label for="resultado">Resultado</label>
+    </div>
+
+    <textarea id="resultado" rows="6" readonly
+      placeholder="O resultado da conversão aparecerá aqui..."></textarea>
+  </section>
+
+</main>
+
+<footer>
+  Ferramentas pessoais · GitHub Pages
+</footer>
+
+<script>
+function limparHex(h) {
+    return h.replace(/[^0-9a-fA-F]/g, "");
+  }
+
+  function limparBin(b) {
+    return b.replace(/[^01]/g, "");
+  }
+
+  function limparDec(d) {
+    return d.replace(/[^0-9]/g, " ");
+  }
+
+  function bytesParaTexto(bytes) {
+    return bytes.map(b => String.fromCharCode(b)).join('');
+  }
+
+  function textoParaBytes(texto) {
+    return Array.from(texto).map(c => c.charCodeAt(0));
+  }
+
+  function bytesParaBase64(bytes) {
+    return btoa(bytesParaTexto(bytes));
+  }
+
+  function base64ParaBytes(b64) {
+    const bin = atob(b64.replace(/\s/g, ""));
+    return Array.from(bin).map(c => c.charCodeAt(0));
+  }
+
+  function converter() {
+    const entrada = document.getElementById("valorEntrada").value.trim();
+    const tipoEntrada = document.getElementById("tipoEntrada").value;
+    const tipoSaida = document.getElementById("tipoSaida").value;
+    let bytes = [];
+
+    try {
+      // ===== ENTRADA → BYTES =====
+      if (tipoEntrada === "hex") {
+        const hex = limparHex(entrada);
+        for (let i = 0; i < hex.length; i += 2)
+          bytes.push(parseInt(hex.substr(i, 2), 16));
+      }
+      else if (tipoEntrada === "bin") {
+        const bin = limparBin(entrada);
+        for (let i = 0; i < bin.length; i += 8)
+          bytes.push(parseInt(bin.substr(i, 8), 2));
+      }
+      else if (tipoEntrada === "dec") {
+        bytes = limparDec(entrada)
+          .split(/\s+/)
+          .map(n => parseInt(n, 10))
+          .filter(n => !isNaN(n));
+      }
+      else if (tipoEntrada === "txt") {
+        bytes = textoParaBytes(entrada);
+      }
+      else if (tipoEntrada === "b64") {
+        bytes = base64ParaBytes(entrada);
+      }
+
+      // ===== BYTES → SAÍDA =====
+      let resultado = "";
+      if (tipoSaida === "hex") {
+        resultado = bytes.map(b => b.toString(16).padStart(2, '0')).join(" ").toUpperCase();
+      }
+      else if (tipoSaida === "bin") {
+        resultado = bytes.map(b => b.toString(2).padStart(8, '0')).join(" ");
+      }
+      else if (tipoSaida === "dec") {
+        resultado = bytes.join(" ");
+      }
+      else if (tipoSaida === "txt") {
+        resultado = bytesParaTexto(bytes);
+      }
+      else if (tipoSaida === "b64") {
+        resultado = bytesParaBase64(bytes);
+      }
+
+      document.getElementById("resultado").value = resultado;
+
+    } catch (e) {
+      document.getElementById("resultado").value = "Erro: Base inválida ou dados incorretos";
+    }
+  }
+
+  function copiarResultado() {
+    const r = document.getElementById("resultado");
+    r.select();
+    document.execCommand("copy");
+    alert("Resultado copiado!");
+  }
+</script>
+
+</body>
+</html>

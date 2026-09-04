@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+```
+<title>Ferramentas</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                     Roboto, Helvetica, Arial, sans-serif;
+
+        background: #f5f7fb;
+        color: #1f2937;
+        min-height: 100vh;
+    }
+
+    /* ==============================
+       HEADER
+    ============================== */
+
+    header {
+        background: #111827;
+        color: white;
+        padding: 55px 20px 65px;
+    }
+
+    .header-content {
+        max-width: 1100px;
+        margin: auto;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 20px;
+        background: rgba(255,255,255,0.1);
+        color: #d1d5db;
+        font-size: 13px;
+        margin-bottom: 18px;
+    }
+
+    h1 {
+        font-size: 42px;
+        font-weight: 700;
+        letter-spacing: -1px;
+        margin-bottom: 12px;
+    }
+
+    .subtitle {
+        color: #9ca3af;
+        font-size: 17px;
+        max-width: 650px;
+        line-height: 1.6;
+    }
+
+    /* ==============================
+       MAIN
+    ============================== */
+
+    main {
+        max-width: 1100px;
+        margin: -30px auto 60px;
+        padding: 0 20px;
+    }
+
+    /* ==============================
+       SEARCH
+    ============================== */
+
+    .search-container {
+        background: white;
+        padding: 18px;
+        border-radius: 14px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+        margin-bottom: 35px;
+    }
+
+    .search {
+        width: 100%;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 14px 16px;
+        font-size: 15px;
+        outline: none;
+        transition: 0.2s;
+    }
+
+    .search:focus {
+        border-color: #6b7280;
+        box-shadow: 0 0 0 3px rgba(107,114,128,0.12);
+    }
+
+    /* ==============================
+       SECTION
+    ============================== */
+
+    .section-title {
+        font-size: 14px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #6b7280;
+        margin-bottom: 18px;
+    }
+
+    /* ==============================
+       CARDS
+    ============================== */
+
+    .tools-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+    }
+
+    .tool-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 25px;
+        text-decoration: none;
+        color: inherit;
+
+        transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease,
+            border-color 0.2s ease;
+
+        display: flex;
+        flex-direction: column;
+        min-height: 210px;
+    }
+
+    .tool-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.10);
+        border-color: #d1d5db;
+    }
+
+    .tool-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: #f3f4f6;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        font-size: 23px;
+        margin-bottom: 20px;
+    }
+
+    .tool-card h2 {
+        font-size: 19px;
+        margin-bottom: 9px;
+        color: #111827;
+    }
+
+    .tool-card p {
+        font-size: 14px;
+        line-height: 1.6;
+        color: #6b7280;
+        flex-grow: 1;
+    }
+
+    .open-tool {
+        margin-top: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .open-tool span {
+        transition: margin 0.2s;
+    }
+
+    .tool-card:hover .open-tool span {
+        margin-left: 5px;
+    }
+
+    /* ==============================
+       FUTURE TOOL
+    ============================== */
+
+    .future-card {
+        border: 2px dashed #d1d5db;
+        background: #fafafa;
+    }
+
+    .future-card:hover {
+        border-color: #9ca3af;
+        background: white;
+    }
+
+    .future-card .tool-icon {
+        background: #e5e7eb;
+        color: #6b7280;
+    }
+
+    /* ==============================
+       FOOTER
+    ============================== */
+
+    footer {
+        text-align: center;
+        color: #9ca3af;
+        font-size: 13px;
+        padding: 20px;
+    }
+
+    /* ==============================
+       MOBILE
+    ============================== */
+
+    @media (max-width: 600px) {
+
+        header {
+            padding: 40px 20px 55px;
+        }
+
+        h1 {
+            font-size: 32px;
+        }
+
+        .subtitle {
+            font-size: 15px;
+        }
+
+        main {
+            margin-top: -25px;
+        }
+
+        .tool-card {
+            min-height: 190px;
+        }
+    }
+</style>
+```
+
+</head>
+
+<body>
+
+```
+<!-- =========================================
+     HEADER
+========================================== -->
+
+<header>
+
+    <div class="header-content">
+
+        <div class="badge">
+            Ferramentas online
+        </div>
+
+        <h1>
+            Ferramentas
+        </h1>
+
+        <p class="subtitle">
+            Um conjunto de ferramentas simples para auxiliar
+            no desenvolvimento, automação, análise e manipulação
+            de dados.
+        </p>
+
+    </div>
+
+</header>
+
+
+<!-- =========================================
+     MAIN
+========================================== -->
+
+<main>
+
+    <!-- Pesquisa -->
+
+    <div class="search-container">
+
+        <input
+            type="text"
+            id="search"
+            class="search"
+            placeholder="Pesquisar ferramenta..."
+            autocomplete="off"
+        >
+
+    </div>
+
+
+    <!-- Título -->
+
+    <div class="section-title">
+        Ferramentas disponíveis
+    </div>
+
+
+    <!-- Cards -->
+
+    <div class="tools-grid" id="toolsGrid">
+
+
+        <!-- =================================
+             FERRAMENTA MODBUS
+        ================================== -->
+
+        <a
+            href="./ferramentas/Ferramenta_modbus/"
+            class="tool-card"
+            data-name="modbus ferramenta modbus"
+        >
+
+            <div class="tool-icon">
+                ⚙
+            </div>
+
+            <h2>
+                Ferramenta Modbus
+            </h2>
+
+            <p>
+                Ferramentas para consulta, análise e
+                manipulação de dados utilizando o protocolo
+                Modbus.
+            </p>
+
+            <div class="open-tool">
+                Abrir ferramenta
+                <span>→</span>
+            </div>
+
+        </a>
+
+
+        <!-- =================================
+             CONVERSOR DE BASES
+        ================================== -->
+
+        <a
+            href="./ferramentas/Conversor_de_bases/"
+            class="tool-card"
+            data-name="conversor bases decimal hexadecimal binario"
+        >
+
+            <div class="tool-icon">
+                ⇄
+            </div>
+
+            <h2>
+                Conversor de Bases
+            </h2>
+
+            <p>
+                Conversão rápida entre diferentes bases
+                numéricas, como decimal, hexadecimal,
+                binário e outras.
+            </p>
+
+            <div class="open-tool">
+                Abrir ferramenta
+                <span>→</span>
+            </div>
+
+        </a>
+
+
+        <!-- =================================
+             FORMATADOR JSON
+        ================================== -->
+
+        <a
+            href="./ferramentas/Formatador_JSON/"
+            class="tool-card"
+            data-name="formatador json json formatter"
+        >
+
+            <div class="tool-icon">
+                { }
+            </div>
+
+            <h2>
+                Formatador JSON
+            </h2>
+
+            <p>
+                Formate, organize e visualize estruturas
+                JSON de forma rápida e prática.
+            </p>
+
+            <div class="open-tool">
+                Abrir ferramenta
+                <span>→</span>
+            </div>
+
+        </a>
+
+        <!-- =================================
+             Gerador QR Code
+        ================================== -->
+
+        <a
+            href="./ferramentas/Gerador_QR_Code/"
+            class="tool-card"
+            data-name="Gerador de QR Code"
+        >
+
+            <div class="tool-icon">
+                QR
+            </div>
+
+            <h2>
+                Gerador de QR Code
+            </h2>
+
+            <p>
+                Gere QR code de textos, URLs, numeros de telefone, email e mais,
+                de forma simples.
+            </p>
+
+            <div class="open-tool">
+                Abrir ferramenta
+                <span>→</span>
+            </div>
+
+        </a>
+
+        <!-- =================================
+             ESPAÇO RESERVADO PARA FUTURA
+             FERRAMENTA
+        ================================== -->
+
+        <a
+            href="#"
+            class="tool-card future-card"
+            data-name="nova ferramenta"
+            onclick="return false;"
+        >
+
+            <div class="tool-icon">
+                +
+            </div>
+
+            <h2>
+                Nova ferramenta
+            </h2>
+
+            <p>
+                Espaço reservado para adicionar uma nova
+                ferramenta futuramente.
+            </p>
+
+            <div class="open-tool">
+                Em breve
+            </div>
+
+        </a>
+
+
+    </div>
+
+</main>
+
+
+<!-- =========================================
+     FOOTER
+========================================== -->
+
+<footer>
+
+    Ferramentas pessoais · GitHub Pages
+
+</footer>
+
+
+<!-- =========================================
+     JAVASCRIPT
+========================================== -->
+
+<script>
+
+    const searchInput = document.getElementById("search");
+    const cards = document.querySelectorAll(".tool-card");
+
+    searchInput.addEventListener("input", function () {
+
+        const search = this.value
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "");
+
+        cards.forEach(card => {
+
+            const name = card
+                .dataset
+                .name
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "");
+
+            if (name.includes(search)) {
+
+                card.style.display = "flex";
+
+            } else {
+
+                card.style.display = "none";
+
+            }
+
+        });
+
+    });
+
+</script>
+```
+
+</body>
+</html>
