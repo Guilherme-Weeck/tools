@@ -319,7 +319,7 @@
 </footer>
 
 <script>
-function limparHex(h) {
+  function limparHex(h) {
     return h.replace(/[^0-9a-fA-F]/g, "");
   }
 
@@ -331,21 +331,31 @@ function limparHex(h) {
     return d.replace(/[^0-9]/g, " ");
   }
 
+  // ===== ATUALIZADO PARA UTF-8 COM TEXTDECODER =====
   function bytesParaTexto(bytes) {
-    return bytes.map(b => String.fromCharCode(b)).join('');
+    const uint8Array = new Uint8Array(bytes);
+    const decoder = new TextDecoder('utf-8');
+    return decoder.decode(uint8Array);
   }
 
+  // ===== ATUALIZADO PARA UTF-8 COM TEXTENCODER =====
   function textoParaBytes(texto) {
-    return Array.from(texto).map(c => c.charCodeAt(0));
+    const encoder = new TextEncoder();
+    const uint8Array = encoder.encode(texto);
+    return Array.from(uint8Array);
   }
 
+  // ===== ATUALIZADO PARA BASE64 COMPATÍVEL COM UTF-8 =====
   function bytesParaBase64(bytes) {
-    return btoa(bytesParaTexto(bytes));
+    // Transforma o array de bytes em uma string binária segura antes do btoa
+    const binString = Array.from(bytes, byte => String.fromCharCode(byte)).join("");
+    return btoa(binString);
   }
 
   function base64ParaBytes(b64) {
-    const bin = atob(b64.replace(/\s/g, ""));
-    return Array.from(bin).map(c => c.charCodeAt(0));
+    const binString = atob(b64.replace(/\s/g, ""));
+    // Transforma de volta a string binária segura em array de bytes numéricos
+    return Array.from(binString, char => char.charCodeAt(0));
   }
 
   function converter() {
