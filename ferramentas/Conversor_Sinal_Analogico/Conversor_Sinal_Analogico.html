@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conversor de Sinal Analógico</title>
+<style>
+*{box-sizing:border-box} :root{--bg:#f5f7fb;--surface:#fff;--border:#e5e7eb;--text:#111827;--muted:#6b7280;--button:#374151;--button-hover:#1f2937}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+header{background:#111827;color:#fff;padding:28px 20px 76px}.header-content{max-width:1100px;margin:auto}
+.back-link{display:inline-block;color:#d1d5db;text-decoration:none;font-size:14px;margin-bottom:28px}.back-link:hover{color:white}
+.badge{display:inline-block;padding:6px 10px;border:1px solid #374151;border-radius:999px;color:#d1d5db;font-size:12px;margin-bottom:14px}
+h1{margin:0;font-size:34px;line-height:1.2}.subtitle{max-width:780px;margin:12px 0 0;color:#9ca3af;line-height:1.6;font-size:15px}
+main{max-width:1100px;margin:-44px auto 40px;padding:0 20px}
+.panel{background:#fff;border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:20px;box-shadow:0 8px 24px rgba(17,24,39,.06)}
+.panel-title{font-size:18px;font-weight:bold;margin-bottom:18px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.field{min-width:0;margin-bottom:16px}label{display:block;margin-bottom:8px;color:var(--muted);font-size:12px;font-weight:bold;text-transform:uppercase;letter-spacing:.04em}
+input,select{width:100%;border:1px solid var(--border);border-radius:10px;background:#fff;color:var(--text);padding:12px 14px;font:inherit;font-size:15px;outline:none}
+input:focus,select:focus{border-color:#9ca3af;box-shadow:0 0 0 3px rgba(156,163,175,.18)}.hint{margin-top:7px;color:var(--muted);font-size:12px;line-height:1.5}
+.result-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.result-box{padding:20px;background:#f9fafb;border:1px solid var(--border);border-radius:12px}
+.result-title{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
+.result-value{font-size:clamp(1.5rem,3vw,2rem);font-weight:700;color:#111827;overflow-wrap:anywhere}.result-unit{font-size:14px;color:var(--muted);font-weight:normal}
+.formula-info{font-size:12px;color:var(--muted);line-height:1.6;margin-top:18px}.status{margin-top:12px;font-size:13px;color:var(--muted)}
+footer{text-align:center;color:var(--muted);font-size:13px;padding:10px 20px 30px}
+@media(max-width:700px){header{padding:22px 16px 68px}h1{font-size:28px}main{padding:0 16px}.panel{padding:18px}.grid,.result-grid{grid-template-columns:1fr;gap:12px}}
+</style></head>
+<body>
+<header><div class="header-content">
+<a class="back-link" href="../../">← Voltar para ferramentas</a>
+<div class="badge">Instrumentação e sinais analógicos</div>
+<h1>Conversor de Sinal Analógico</h1>
+<p class="subtitle">Converta corrente em valor físico ou informe o valor físico para calcular a corrente correspondente.</p>
+</div></header>
+<main>
+<section class="panel"><div class="panel-title">Configuração da escala</div>
+<div class="grid">
+<div class="field"><label for="tipoSinal">Faixa de corrente</label><select id="tipoSinal"><option value="0-20">0–20 mA</option><option value="4-20" selected>4–20 mA</option></select><div class="hint">Define os limites de corrente usados no cálculo.</div></div>
+<div class="field"><label for="min_x">Mínimo da escala física</label><input type="number" id="min_x" step="any" value="0" placeholder="Ex.: 0"></div>
+<div class="field"><label for="max_x">Máximo da escala física</label><input type="number" id="max_x" step="any" value="100" placeholder="Ex.: 100"></div>
+</div></section>
+<section class="panel"><div class="panel-title">Valores de entrada</div>
+<div class="grid">
+<div class="field"><label for="corrente">Corrente lida (mA)</label><input type="number" id="corrente" step="any" value="12" placeholder="Informe a corrente em mA"><div class="hint">Preencha este campo para calcular o valor físico.</div></div>
+<div class="field"><label for="valorFisico">Valor físico convertido</label><input type="number" id="valorFisico" step="any" placeholder="Informe o valor físico"><div class="hint">Ou preencha este campo para calcular a corrente correspondente.</div></div>
+</div><div class="status" id="status">Os resultados são atualizados automaticamente.</div>
+</section>
+<section class="panel"><div class="panel-title">Resultados</div><div class="result-grid">
+<div class="result-box"><div class="result-title">Valor físico</div><div class="result-value"><span id="resultado">50.000</span> <span class="result-unit">unidades</span></div></div>
+<div class="result-box"><div class="result-title">Corrente correspondente</div><div class="result-value"><span id="resultadoCorrente">12.000</span> <span class="result-unit">mA</span></div></div>
+</div><div class="formula-info" id="formulaInfo">Fórmula: Valor = ((mA − 4) / 16) × (Máx − Mín) + Mín</div>
+</section></main>
+<footer>Ferramentas pessoais · GitHub Pages</footer>
+<script>
+const inputCorrente=document.getElementById('corrente');
+const inputMinX=document.getElementById('min_x');
+const inputMaxX=document.getElementById('max_x');
+const inputValorFisico=document.getElementById('valorFisico');
+const selectTipoSinal=document.getElementById('tipoSinal');
+const outputResultado=document.getElementById('resultado');
+const outputCorrente=document.getElementById('resultadoCorrente');
+const outputFormula=document.getElementById('formulaInfo');
+const outputStatus=document.getElementById('status');
+let ultimaOrigem='corrente';
+function formatarNumero(v){return Number.isFinite(v)?v.toFixed(3):'---';}
+function calcularConversao(origem){
+ const minX=parseFloat(inputMinX.value),maxX=parseFloat(inputMaxX.value);
+ const correnteMin=selectTipoSinal.value==='0-20'?0:4,correnteMax=20,spanCorrente=correnteMax-correnteMin;
+ outputFormula.textContent=selectTipoSinal.value==='0-20'?'Fórmula: Valor = (mA / 20) × (Máx − Mín) + Mín':'Fórmula: Valor = ((mA − 4) / 16) × (Máx − Mín) + Mín';
+ if(!Number.isFinite(minX)||!Number.isFinite(maxX)){outputResultado.textContent='---';outputCorrente.textContent='---';outputStatus.textContent='Informe os valores mínimo e máximo da escala.';return;}
+ if(maxX===minX){outputResultado.textContent='---';outputCorrente.textContent='---';outputStatus.textContent='O mínimo e o máximo da escala precisam ser diferentes.';return;}
+ const ma=parseFloat(inputCorrente.value),fisico=parseFloat(inputValorFisico.value);
+ if(origem==='valorFisico'&&inputValorFisico.value.trim()!==''&&Number.isFinite(fisico)){
+  const calc=((fisico-minX)/(maxX-minX))*spanCorrente+correnteMin;
+  outputResultado.textContent=formatarNumero(fisico);outputCorrente.textContent=formatarNumero(calc);outputStatus.textContent='Corrente calculada a partir do valor físico informado.';ultimaOrigem='valorFisico';return;
+ }
+ if(inputCorrente.value.trim()!==''&&Number.isFinite(ma)){
+  const calc=((ma-correnteMin)/spanCorrente)*(maxX-minX)+minX;
+  outputResultado.textContent=formatarNumero(calc);outputCorrente.textContent=formatarNumero(ma);outputStatus.textContent='Valor físico calculado a partir da corrente informada.';ultimaOrigem='corrente';return;
+ }
+ if(inputValorFisico.value.trim()!==''&&Number.isFinite(fisico)){
+  const calc=((fisico-minX)/(maxX-minX))*spanCorrente+correnteMin;
+  outputResultado.textContent=formatarNumero(fisico);outputCorrente.textContent=formatarNumero(calc);outputStatus.textContent='Corrente calculada a partir do valor físico informado.';ultimaOrigem='valorFisico';return;
+ }
+ outputResultado.textContent='---';outputCorrente.textContent='---';outputStatus.textContent='Preencha a corrente ou o valor físico para calcular.';
+}
+inputCorrente.addEventListener('input',()=>{if(inputCorrente.value.trim()!=='')inputValorFisico.value='';calcularConversao('corrente');});
+inputValorFisico.addEventListener('input',()=>{if(inputValorFisico.value.trim()!=='')inputCorrente.value='';calcularConversao('valorFisico');});
+inputMinX.addEventListener('input',()=>calcularConversao(ultimaOrigem));
+inputMaxX.addEventListener('input',()=>calcularConversao(ultimaOrigem));
+selectTipoSinal.addEventListener('change',()=>calcularConversao(ultimaOrigem));
+calcularConversao('corrente');
+</script></body></html>
